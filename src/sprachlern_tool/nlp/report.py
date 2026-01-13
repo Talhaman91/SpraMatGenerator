@@ -1,4 +1,5 @@
-from src.sprachlern_tool.config import ALPHA_PRESETS, SUBCLAUSE_TYPES, MTUL_BANDS, ZIPF_BANDS, LEXVAR_BANDS, CONNECTOR_BANDS
+from src.sprachlern_tool.config import ALPHA_PRESETS, SUBCLAUSE_TYPES, MTUL_BANDS, ZIPF_BANDS, LEXVAR_BANDS, \
+    CONNECTOR_BANDS, TENSES_ALL
 from src.sprachlern_tool.models import Params
 from src.sprachlern_tool.nlp.analysis import analyze_text_stanza, TenseCounts
 from src.sprachlern_tool.nlp.alpha_validation import validate_alpha_stanza
@@ -47,11 +48,9 @@ def build_validation_report(params: Params, text: str) -> str:
     )
     lines.append(
         f"- Max Silben pro Token | Soll: {fmt_soll_int(a.max_syllables_per_token)} | Ist: {m['max_syllables_per_token']} "
-        f"(Pyphen de_DE)"
     )
     lines.append(
         f"- Max Dep-Nebensätze pro Satz | Soll: {fmt_soll_float(a.max_dep_clauses_per_sentence)} | Ist: {m['dep_clauses_per_sentence']:.3f} "
-        f"(UD: advcl/ccomp/csubj/acl:relcl)"
     )
 
     tc: TenseCounts = m["tense_counts"]
@@ -76,7 +75,11 @@ def build_validation_report(params: Params, text: str) -> str:
     )
 
     soll_lex = "unbegrenzt" if a.min_lexical_coverage is None else str(a.min_lexical_coverage)
-    lines.append(f"- Min lexikalische Abdeckung | Soll: {soll_lex} | Ist: n/a (noch nicht implementiert)")
+    cov = m.get("lexical_coverage_wordfreq", None)
+    if cov is None:
+        lines.append(f"- Min lexikalische Abdeckung | Soll: {soll_lex} | Ist: n/a (wordfreq fehlt)")
+    else:
+        lines.append(f"- Min lexikalische Abdeckung | Soll: {soll_lex} | Ist: {cov:.3f}")
     lines.append("")
 
     lines.append("=== Zusatzparameter ===")
@@ -126,14 +129,14 @@ def build_validation_report(params: Params, text: str) -> str:
     if f.konjunktiv_mode != "keine Vorgabe":
         konj_soll = f.konjunktiv_mode
     lines.append(
-        f"- Konjunktiv I/II | Soll: {soll_if_enabled(konj_soll)} | Ist: {m['konjunktiv_count']} (Marker Mood=Sub)"
+        f"- Konjunktiv I/II | Soll: {soll_if_enabled(konj_soll)} | Ist: {m['konjunktiv_count']}"
     )
 
     coh_soll = "keine Vorgabe"
     if f.coherence_hint and f.coherence_hint != "keine":
         coh_soll = f.coherence_hint
     lines.append(
-        f"- Kohärenz-Hinweis | Soll: {soll_if_enabled(coh_soll)} | Ist: {m['coherence_score']:.3f} (Heuristik: Satz-Overlap)"
+        f"- Kohärenz-Hinweis | Soll: {soll_if_enabled(coh_soll)} | Ist: {m['coherence_score']:.3f}"
     )
 
     return "\n".join(lines)

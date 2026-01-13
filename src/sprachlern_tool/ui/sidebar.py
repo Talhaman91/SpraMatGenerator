@@ -1,6 +1,6 @@
 import streamlit as st
 
-from src.sprachlern_tool.config import TEXT_TYPES, TENSES_ALL, LEVELS_4, SUBCLAUSE_TYPES
+from src.sprachlern_tool.config import TEXT_TYPES, TENSES_ALL, LEVELS_4, SUBCLAUSE_TYPES, TENSE_WEIGHT_LEVELS
 from src.sprachlern_tool.ui.state import on_mode_change
 
 
@@ -185,5 +185,17 @@ def render_sidebar() -> tuple[str, float]:
                 disabled=fine_disabled,
                 help="Abstrakter Hinweis zur Kohärenz.",
             )
+
+            st.divider()
+            st.caption("Tempora-Gewichtung (Präferenz – Alpha hat Vorrang)")
+
+            for t in TENSES_ALL:
+                st.selectbox(
+                    label=t,
+                    options=TENSE_WEIGHT_LEVELS,
+                    key=f"fine_tense_weight_{t}",
+                    disabled=fine_disabled,
+                    help="Weiche Gewichtung der Zeitform. Falls das Tempus im Alpha-Level verboten ist, wird diese Vorgabe ignoriert."
+                )
 
     return api_key, float(temperature)

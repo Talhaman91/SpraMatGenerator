@@ -1,7 +1,7 @@
 import streamlit as st
 
-from src.sprachlern_tool.prompts.system_prompt import build_system_prompt
-from src.sprachlern_tool.prompts.user_prompt import build_user_prompt
+from src.sprachlern_tool.prompBuilder.system_prompt import build_system_prompt
+from src.sprachlern_tool.prompBuilder.user_prompt import build_user_prompt
 from src.sprachlern_tool.llm.gemini_client import gemini_generate
 from src.sprachlern_tool.nlp.report import build_validation_report
 from src.sprachlern_tool.ui.state import ensure_defaults_exist, build_params_from_state
@@ -12,7 +12,7 @@ def main() -> None:
     st.set_page_config(page_title="Sprachlernmaterial Generator", layout="wide")
     st.title("Sprachlernmaterial Generator")
     st.caption(
-        "Modus: Alpha 3–6 oder Ohne Alpha · Ohne Alpha: 0 = aus · Validierung: Stanza-only · "
+        "Modus: Alpha 3–6 oder Ohne Alpha · Ohne Alpha: 0 = aus · Validierung· "
         "Lexik-Abdeckung: Parameter bleibt, Prüfung später"
     )
 
@@ -48,7 +48,7 @@ def main() -> None:
             try:
                 report = build_validation_report(params, st.session_state["last_text"])
                 st.text_area(
-                    "Validierung / Metriken (Stanza-only)",
+                    "Validierung / Metriken",
                     report,
                     height=420,
                     help=(

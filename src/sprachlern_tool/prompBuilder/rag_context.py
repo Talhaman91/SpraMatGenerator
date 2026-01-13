@@ -59,7 +59,7 @@ def rag_context_for_fine_params() -> str:
         "| LexVar | lexikalische Vielfalt (TTR/MTLD zusammengefasst) | niedrig = mehr Wiederholung |\n"
         "| Zipf | Wortfrequenz (1–7) | höher = häufigere Wörter |\n"
         "| Konnektoren | z.B. weil, aber, obwohl | weniger explizite Verknüpfungen |\n"
-        "| Modus | Konjunktiv (I/II) | vermeiden = morphologisch einfacher |\n"
+        "| Modus | Konjunktiv (I/II) | vermeiden = morphologisch einfacher, erlauben = verwende Konjunktiv I und II (wenn passend) |\n"
         "| Nebensatzarten | Relativsatz, Kausalsatz, ... | bestimmte Strukturen vermeiden |\n"
         "| Kohärenz | logischer Zusammenhang | klar nachvollziehbare Bezüge |\n"
     )

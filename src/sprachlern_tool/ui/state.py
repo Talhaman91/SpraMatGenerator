@@ -1,6 +1,6 @@
 import streamlit as st
 
-from src.sprachlern_tool.config import FREE_DEFAULTS, ALPHA_PRESETS
+from src.sprachlern_tool.config import FREE_DEFAULTS, ALPHA_PRESETS, TENSES_ALL
 from src.sprachlern_tool.models import Params, GeneralParams, AlphaParams, FineParams
 from src.sprachlern_tool.utils import optional_float_or_none, clamp_level
 
@@ -32,6 +32,9 @@ def ensure_defaults_exist() -> None:
     st.session_state.setdefault("fine_forbidden_subclause_types", [])
     st.session_state.setdefault("fine_konjunktiv_mode", "keine Vorgabe")
     st.session_state.setdefault("fine_coherence_hint", "keine")
+
+    for t in TENSES_ALL:
+        st.session_state.setdefault(f"fine_tense_weight_{t}", "keine Vorgabe")
 
 
 def apply_preset_if_alpha(mode: str) -> None:
@@ -93,6 +96,10 @@ def build_params_from_state() -> Params:
             zipf_level=clamp_level(str(st.session_state.get("fine_zipf_level", "keine Vorgabe"))),
             lexvar_level=clamp_level(str(st.session_state.get("fine_lexvar_level", "keine Vorgabe"))),
             connectors_level=clamp_level(str(st.session_state.get("fine_connectors_level", "keine Vorgabe"))),
+            tense_weights={
+                t: st.session_state.get(f"fine_tense_weight_{t}", "keine Vorgabe")
+                for t in TENSES_ALL
+            },
             forbidden_subclause_types=list(st.session_state.get("fine_forbidden_subclause_types", [])),
             konjunktiv_mode=str(st.session_state.get("fine_konjunktiv_mode", "keine Vorgabe")),
             coherence_hint=str(st.session_state.get("fine_coherence_hint", "keine")),

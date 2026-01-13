@@ -5,10 +5,11 @@ Dieses Modul bündelt feste Listen, Presets und Richtwert-Bänder, damit andere 
 keine Hardcodes enthalten und Änderungen an einer Stelle erfolgen können.
 """
 
-GEMINI_MODEL = "gemini-3-flash-preview"
-# GEMINI_MODEL = "gemini-2.5-flash"
+#GEMINI_MODEL = "gemini-3-flash-preview"
+GEMINI_MODEL = "gemini-2.5-flash"
 
 TENSES_ALL = ["Präsens", "Präteritum", "Perfekt", "Plusquamperfekt", "Futur I", "Futur II"]
+TENSE_WEIGHT_LEVELS = ["keine Vorgabe", "verboten", "wenig", "mittel", "viel"]
 TEXT_TYPES = ["Erzählung", "Sachtext", "Dialog", "E-Mail", "Nachrichtenberichterstattung"]
 
 SUBCLAUSE_TYPES = [

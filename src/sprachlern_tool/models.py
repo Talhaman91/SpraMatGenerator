@@ -29,6 +29,7 @@ class FineParams:
     zipf_level: str
     lexvar_level: str
     connectors_level: str
+    tense_weights: dict[str, str]
     forbidden_subclause_types: list[str]
     konjunktiv_mode: str
     coherence_hint: str

@@ -25,8 +25,11 @@ _CONNECTORS = {
     "außerdem", "zusätzlich",
 }
 
+# Heuristik-Marker für Nebensatzarten.
+# Wichtig: "Relativsatz" NICHT mehr über Artikel zählen, weil das extrem viele False Positives erzeugt.
 _SUBCLAUSE_MARKERS = {
-    "Relativsatz": {"der", "die", "das", "welcher", "welche", "welches"},
+    # Relativsatz wird UD-basiert gezählt (acl:relcl). Marker nur als Fallback (optional).
+    "Relativsatz": {"welcher", "welche", "welches"},
     "Kausalsatz": {"weil", "da"},
     "Temporalsatz": {"als", "wenn", "während", "bevor", "nachdem", "sobald", "seit", "bis"},
     "Konditionalsatz": {"wenn", "falls"},
@@ -272,6 +275,38 @@ def _zipf_avg(tokens: list[str]) -> float | None:
     return sum(vals) / len(vals)
 
 
+def _lexical_coverage_wordfreq(doc) -> float | None:
+    """
+    Lexikalische Abdeckung auf Basis von wordfreq:
+    - lexikalische Types = unique Lemmata von NOUN/VERB/ADJ/ADV
+    - "known" wenn zipf_frequency(lemma, 'de') > 0
+    """
+    try:
+        from wordfreq import zipf_frequency  # type: ignore
+    except Exception:
+        return None
+
+    lexical_upos = {"NOUN", "VERB", "ADJ", "ADV"}
+
+    types: set[str] = set()
+    for sent in doc.sentences:
+        for w in sent.words:
+            upos = getattr(w, "upos", None)
+            if upos not in lexical_upos:
+                continue
+
+            lem = (getattr(w, "lemma", "") or "").lower().strip()
+            if not lem:
+                continue
+            types.add(lem)
+
+    if not types:
+        return 1.0
+
+    known = sum(1 for t in types if zipf_frequency(t, "de") > 0.0)
+    return known / len(types)
+
+
 def _count_konjunktiv(words) -> int:
     """
     Zählt Konjunktiv-Marker über UD-Feature Mood=Sub.
@@ -336,17 +371,41 @@ def _mtul_from_sentences(doc) -> float:
     return (total_words / total_tunits) if total_tunits > 0 else 0.0
 
 
+def _count_relative_clauses_ud(doc) -> int:
+    """
+    Zählt Relativsätze über UD-Relation 'acl:relcl'.
+
+    Vorteil:
+    - Artikel wie "der/die/das" werden NICHT fälschlich als Relativsatz gezählt.
+    """
+    cnt = 0
+    for sent in doc.sentences:
+        for w in sent.words:
+            if (getattr(w, "deprel", "") or "") == "acl:relcl":
+                cnt += 1
+    return cnt
+
+
 def _subclause_hits(doc) -> dict[str, int]:
     """
-    Marker-basierte Zählung von Nebensatztypen.
+    Zählung von Nebensatztypen für den Report.
 
-    Diese Zählung ist eine Heuristik, um „zu vermeidende Nebensatzarten“ im Report sichtbar zu machen.
+    - Relativsatz: UD-basiert über 'acl:relcl'
+    - Andere Typen: marker-basiert (Heuristik)
     """
     hits = {k: 0 for k in _SUBCLAUSE_MARKERS.keys()}
+
+    # Marker-basierte Zählung für die übrigen Typen
     for sent in doc.sentences:
         toks = [(getattr(w, "text", "") or "").lower() for w in sent.words if _token_is_word(w)]
         for typ, markers in _SUBCLAUSE_MARKERS.items():
+            if typ == "Relativsatz":
+                continue
             hits[typ] += sum(1 for t in toks if t in markers)
+
+    # Relativsatz: UD-basiert
+    hits["Relativsatz"] = _count_relative_clauses_ud(doc)
+
     return hits
 
 
@@ -365,6 +424,8 @@ def analyze_text_stanza(text: str) -> dict:
 
     words_per_sentence = []
     max_syllables = 0
+
+    lexcov = _lexical_coverage_wordfreq(doc)
 
     dep_subclause_heads_total = 0
     tense_counts_total = TenseCounts()
@@ -436,6 +497,7 @@ def analyze_text_stanza(text: str) -> dict:
         "ttr": ttr_val,
         "mtld": mtld_val,
         "zipf_avg": zipf_val,
+        "lexical_coverage_wordfreq": lexcov,
         "connectors_count": connectors_count,
         "connectors_per_100w": connectors_per_100,
         "konjunktiv_count": konj_cnt,

@@ -33,7 +33,7 @@ def validate_alpha_stanza(params: Params, metrics: dict) -> dict:
                 metrics["max_syllables_per_token"] <= a.max_syllables_per_token,
                 metrics["max_syllables_per_token"],
                 a.max_syllables_per_token,
-                note="Silben via Pyphen (de_DE).",
+                note="Silben via Pyphen.",
             )
 
         if a.max_dep_clauses_per_sentence > 0.0:
@@ -42,7 +42,6 @@ def validate_alpha_stanza(params: Params, metrics: dict) -> dict:
                 metrics["dep_clauses_per_sentence"] <= a.max_dep_clauses_per_sentence,
                 round(metrics["dep_clauses_per_sentence"], 3),
                 a.max_dep_clauses_per_sentence,
-                note="UD: advcl/ccomp/csubj/acl:relcl",
             )
 
         forbidden = set(a.forbidden_tenses or [])
@@ -71,13 +70,23 @@ def validate_alpha_stanza(params: Params, metrics: dict) -> dict:
             )
 
         if a.min_lexical_coverage is not None:
-            add(
-                "Lexikalische Abdeckung",
-                True,
-                "n/a",
-                a.min_lexical_coverage,
-                note="Prüfung derzeit nicht implementiert.",
-            )
+            cov = metrics.get("lexical_coverage_wordfreq", None)
+            if cov is None:
+                add(
+                    "Lexikalische Abdeckung",
+                    False,
+                    "n/a",
+                    a.min_lexical_coverage,
+                    note="wordfreq nicht verfügbar (pip install wordfreq).",
+                )
+            else:
+                add(
+                    "Lexikalische Abdeckung",
+                    cov >= a.min_lexical_coverage,
+                    round(cov, 3),
+                    a.min_lexical_coverage,
+                    note="Lemma-Types (NOUN/VERB/ADJ/ADV) mit wordfreq zipf>0 / alle Types.",
+                )
 
         overall = all(c["ok"] for c in checks) if checks else None
         return {"overall": overall, "checks": checks}
@@ -130,13 +139,23 @@ def validate_alpha_stanza(params: Params, metrics: dict) -> dict:
         )
 
     if a.min_lexical_coverage is not None:
-        add(
-            "Lexikalische Abdeckung",
-            True,
-            "n/a",
-            a.min_lexical_coverage,
-            note="Prüfung derzeit nicht implementiert.",
-        )
+        cov = metrics.get("lexical_coverage_wordfreq", None)
+        if cov is None:
+            add(
+                "Lexikalische Abdeckung",
+                False,
+                "n/a",
+                a.min_lexical_coverage,
+                note="wordfreq nicht verfügbar (pip install wordfreq).",
+            )
+        else:
+            add(
+                "Lexikalische Abdeckung",
+                cov >= a.min_lexical_coverage,
+                round(cov, 3),
+                a.min_lexical_coverage,
+                note="Lemma-Types (NOUN/VERB/ADJ/ADV) mit wordfreq zipf>0 / alle Types.",
+            )
 
     overall = all(c["ok"] for c in checks) if checks else None
     return {"overall": overall, "checks": checks}

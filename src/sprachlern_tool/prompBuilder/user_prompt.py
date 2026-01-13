@@ -1,6 +1,6 @@
 from src.sprachlern_tool.config import MTUL_BANDS, ZIPF_BANDS, LEXVAR_BANDS, CONNECTOR_BANDS
 from src.sprachlern_tool.models import Params, FineParams
-from src.sprachlern_tool.prompts.rag_context import rag_context_for_alpha, rag_context_for_fine_params
+from src.sprachlern_tool.prompBuilder.rag_context import rag_context_for_alpha, rag_context_for_fine_params
 
 
 def fine_params_to_prompt_lines(f: FineParams) -> list[str]:
@@ -13,6 +13,25 @@ def fine_params_to_prompt_lines(f: FineParams) -> list[str]:
         return []
 
     lines: list[str] = []
+
+    weight_text = {
+        "verboten": "nicht verwenden",
+        "wenig": "selten verwenden",
+        "mittel": "in moderater Häufigkeit verwenden",
+        "viel": "häufig verwenden",
+    }
+
+    selected = [
+        (t, w)
+        for t, w in (f.tense_weights or {}).items()
+        if w and w != "keine Vorgabe"
+    ]
+
+    if selected:
+        parts = []
+        for t, w in selected:
+            parts.append(f"{t}: {weight_text.get(w, w)}")
+        lines.append("- Tempora-Gewichtung (Präferenz): " + "; ".join(parts) + ".")
 
     if f.mtul_level != "keine Vorgabe":
         band = MTUL_BANDS.get(f.mtul_level, f.mtul_level)
@@ -59,6 +78,30 @@ def build_user_prompt(p: Params) -> str:
     fine_lines = fine_params_to_prompt_lines(f)
     fine_ctx = rag_context_for_fine_params() if fine_lines else ""
 
+    if f.enabled and a.forbidden_tenses:
+        forbidden_set = set(a.forbidden_tenses)
+
+        cleaned_weights = {
+            t: w
+            for t, w in (f.tense_weights or {}).items()
+            if t not in forbidden_set
+        }
+
+        f_clean = FineParams(
+            enabled=f.enabled,
+            mtul_level=f.mtul_level,
+            zipf_level=f.zipf_level,
+            lexvar_level=f.lexvar_level,
+            connectors_level=f.connectors_level,
+            tense_weights=cleaned_weights,
+            forbidden_subclause_types=f.forbidden_subclause_types,
+            konjunktiv_mode=f.konjunktiv_mode,
+            coherence_hint=f.coherence_hint,
+        )
+
+        fine_lines = fine_params_to_prompt_lines(f_clean)
+        fine_ctx = rag_context_for_fine_params() if fine_lines else ""
+
     if a.mode == "Ohne Alpha":
         lines: list[str] = [f'Thema: "{g.topic}".', f"Textart: {g.text_type}."]
 
@@ -80,7 +123,7 @@ def build_user_prompt(p: Params) -> str:
         if a.max_perfekt_per_finite_verb is not None:
             lines.append(f"- Perfekt pro finitem Verb: höchstens {a.max_perfekt_per_finite_verb}.")
         if a.min_lexical_coverage is not None:
-            lines.append(f"- Lexik: Ziel-Abdeckung mindestens {a.min_lexical_coverage}. (Hinweis: später extern geprüft)")
+            lines.append(f"- Lexikalische Abdeckung: Ziel-Abdeckung mindestens {a.min_lexical_coverage}. Orientiere dich an SUBTLEX_DE")
 
         if fine_ctx:
             lines += ["", "Beziehe dich für die folgenden Zusatzparameter auf das Glossar (Retrieved Context):", "", fine_ctx.strip()]
@@ -119,7 +162,7 @@ def build_user_prompt(p: Params) -> str:
     if a.max_perfekt_per_finite_verb is not None:
         lines.append(f"- Perfekt pro finitem Verb: höchstens {a.max_perfekt_per_finite_verb}.")
     if a.min_lexical_coverage is not None:
-        lines.append(f"- Lexik: Ziel-Abdeckung mindestens {a.min_lexical_coverage}. (Hinweis: später extern geprüft)")
+        lines.append(f"- Lexikalische Abdeckung: Ziel-Abdeckung mindestens {a.min_lexical_coverage}. Orientiere dich an SUBTLEX_DE")
 
     if fine_ctx:
         lines += ["", "Beziehe dich für die folgenden Zusatzparameter auf das Glossar (Retrieved Context):", "", fine_ctx.strip()]
