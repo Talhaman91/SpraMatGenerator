@@ -1,6 +1,6 @@
 from src.sprachlern_tool.config import MTUL_BANDS, ZIPF_BANDS, LEXVAR_BANDS, CONNECTOR_BANDS
 from src.sprachlern_tool.models import Params, FineParams
-from src.sprachlern_tool.prompBuilder.rag_context import rag_context_for_alpha, rag_context_for_fine_params
+from src.sprachlern_tool.prompBuilder.context import context_for_alpha
 
 
 def fine_params_to_prompt_lines(f: FineParams) -> list[str]:
@@ -48,8 +48,8 @@ def fine_params_to_prompt_lines(f: FineParams) -> list[str]:
         band = LEXVAR_BANDS.get(f.lexvar_level, f.lexvar_level)
         lines.append(f"- Lexikalische Vielfalt: {f.lexvar_level}. Ziel: {band}. (bestmöglich)")
 
-    if f.konjunktiv_mode == "erlauben":
-        lines.append("- Konjunktiv I/II: erlaubt (wenn passend).")
+    if f.konjunktiv_mode == "soll vorkommen":
+        lines.append("- Konjunktiv I/II: soll vorkommen (wenn passend).")
     elif f.konjunktiv_mode == "vermeiden":
         lines.append("- Konjunktiv I/II: vermeiden.")
 
@@ -76,7 +76,6 @@ def build_user_prompt(p: Params) -> str:
 
     forbidden = ", ".join(a.forbidden_tenses) if a.forbidden_tenses else "keine"
     fine_lines = fine_params_to_prompt_lines(f)
-    fine_ctx = rag_context_for_fine_params() if fine_lines else ""
 
     if f.enabled and a.forbidden_tenses:
         forbidden_set = set(a.forbidden_tenses)
@@ -100,7 +99,6 @@ def build_user_prompt(p: Params) -> str:
         )
 
         fine_lines = fine_params_to_prompt_lines(f_clean)
-        fine_ctx = rag_context_for_fine_params() if fine_lines else ""
 
     if a.mode == "Ohne Alpha":
         lines: list[str] = [f'Thema: "{g.topic}".', f"Textart: {g.text_type}."]
@@ -118,15 +116,13 @@ def build_user_prompt(p: Params) -> str:
             lines.append(f"- Silben pro Token: höchstens {a.max_syllables_per_token}.")
         if a.max_dep_clauses_per_sentence > 0.0:
             lines.append(f"- Dependenznebensätze pro Satz: höchstens {a.max_dep_clauses_per_sentence}.")
-        lines.append(f"- Verbotene Tempora: {forbidden}.")
+        lines.append(f"- Verbotene Tempora: {forbidden}. Versuche alle erlaubten Tempora zu verwenden sofern es Sinn ergibt.")
 
         if a.max_perfekt_per_finite_verb is not None:
-            lines.append(f"- Perfekt pro finitem Verb: höchstens {a.max_perfekt_per_finite_verb}.")
+            lines.append(f"- Perfekt pro finitem Verb: höchstens {a.max_perfekt_per_finite_verb}.Versuche bis zu {a.max_dep_clauses_per_sentence} einzubauen wenn möglich.")
         if a.min_lexical_coverage is not None:
             lines.append(f"- Lexikalische Abdeckung: Ziel-Abdeckung mindestens {a.min_lexical_coverage}. Orientiere dich an SUBTLEX_DE")
 
-        if fine_ctx:
-            lines += ["", "Beziehe dich für die folgenden Zusatzparameter auf das Glossar (Retrieved Context):", "", fine_ctx.strip()]
         if fine_lines:
             lines += ["", "Zusatzparameter (sekundär, ändern kein Alpha-Level):", *fine_lines]
 
@@ -141,10 +137,10 @@ def build_user_prompt(p: Params) -> str:
         ]
         return "\n".join(lines)
 
-    rag_ctx = rag_context_for_alpha(a.mode)
+    rag_ctx = context_for_alpha(a.mode)
     lines = [
         f"ALPHA-LEVEL: {a.mode}",
-        "Beziehe dich auf den folgenden Algorithmus-Kontext (RAG) und halte die Parameter so gut wie möglich ein.",
+        "Beziehe dich auf den folgenden Algorithmus-Kontext und halte die Parameter so gut wie möglich ein.",
         "",
         rag_ctx.strip(),
         "",
@@ -155,8 +151,8 @@ def build_user_prompt(p: Params) -> str:
         f"- Anzahl Sätze: höchstens {a.max_sentences}.",
         f"- Wörter pro Satz: höchstens {a.max_words_per_sentence}.",
         f"- Silben pro Token: höchstens {a.max_syllables_per_token}.",
-        f"- Dependenznebensätze pro Satz: höchstens {a.max_dep_clauses_per_sentence}.",
-        f"- Verbotene Tempora: {forbidden}.",
+        f"- Dependenznebensätze pro Satz: höchstens {a.max_dep_clauses_per_sentence}. Versuche bis zu {a.max_dep_clauses_per_sentence} einzubauen wenn möglich.",
+        f"- Verbotene Tempora: {forbidden}. Versuche alle erlaubten Tempora zu verwenden sofern es Sinn ergibt.",
     ]
 
     if a.max_perfekt_per_finite_verb is not None:
@@ -164,8 +160,6 @@ def build_user_prompt(p: Params) -> str:
     if a.min_lexical_coverage is not None:
         lines.append(f"- Lexikalische Abdeckung: Ziel-Abdeckung mindestens {a.min_lexical_coverage}. Orientiere dich an SUBTLEX_DE")
 
-    if fine_ctx:
-        lines += ["", "Beziehe dich für die folgenden Zusatzparameter auf das Glossar (Retrieved Context):", "", fine_ctx.strip()]
     if fine_lines:
         lines += ["", "Zusatzparameter (sekundär, ändern dieses Alpha-Level nicht):", *fine_lines]
 

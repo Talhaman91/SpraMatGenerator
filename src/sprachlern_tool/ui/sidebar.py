@@ -171,8 +171,8 @@ def render_sidebar() -> tuple[str, float]:
             )
 
             st.selectbox(
-                "Konjunktiv I/II",
-                ["keine Vorgabe", "erlauben", "vermeiden"],
+                "Modus (Konjunktiv I/II)",
+                ["keine Vorgabe", "soll vorkommen", "vermeiden"],
                 key="fine_konjunktiv_mode",
                 disabled=fine_disabled,
                 help="Ob Konjunktivformen genutzt oder vermieden werden sollen.",
