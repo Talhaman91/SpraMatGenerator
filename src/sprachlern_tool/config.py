@@ -3,8 +3,8 @@ Zentrale Konfiguration und Konstanten.
 
 """
 
-#GEMINI_MODEL = "gemini-3-flash-preview"
-GEMINI_MODEL = "gemini-2.5-flash"
+GEMINI_MODEL = "gemini-3-flash-preview"
+#GEMINI_MODEL = "gemini-2.5-flash"
 
 TENSES_ALL = ["Präsens", "Präteritum", "Perfekt", "Plusquamperfekt", "Futur I", "Futur II"]
 TENSE_WEIGHT_LEVELS = ["keine Vorgabe", "verboten", "wenig", "mittel", "viel"]
@@ -45,9 +45,9 @@ LEXVAR_BANDS = {
 }
 
 CONNECTOR_BANDS = {
-    "niedrig": "wenige Konnektoren (z. B. 0–3)",
-    "mittel": "moderate Konnektoren (z. B. 4–8)",
-    "hoch": "viele Konnektoren erlaubt (z. B. 9–15)",
+    "niedrig": "(0–3)",
+    "mittel": "(4–8)",
+    "hoch": "(9–15)",
     "sehr hoch": "keine Einschränkung",
 }
 

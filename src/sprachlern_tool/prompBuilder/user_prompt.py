@@ -55,7 +55,7 @@ def fine_params_to_prompt_lines(f: FineParams) -> list[str]:
 
     if f.connectors_level != "keine Vorgabe":
         band = CONNECTOR_BANDS.get(f.connectors_level, f.connectors_level)
-        lines.append(f"- Konnektoren: {f.connectors_level}. Richtwert: {band}. (bestmöglich)")
+        lines.append(f"- Konnektoren: {f.connectors_level}. Richtwert: {band}. (genau einhalten)")
 
     if f.coherence_hint and f.coherence_hint != "keine":
         lines.append(f"- Kohärenz: {f.coherence_hint} (logisch gut nachvollziehbar, klare Bezüge).")
