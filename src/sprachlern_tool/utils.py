@@ -1,12 +1,24 @@
 from src.sprachlern_tool.config import LEVELS_4
+"""
+Kleine Hilfsfunktionen für robuste UI- und Parameterverarbeitung.
+
+- Normalisierung von Eingaben (z.B. 0 → deaktiviert)
+- Absicherung von Level-Strings gegen ungültige Werte
+"""
 
 
 def optional_float_or_none(value) -> float | None:
     """
-    Normalisiert UI-Eingaben.
+    Normalisiert numerische UI-Eingaben zu optionalen Grenzwerten.
 
-    Streamlit number_input liefert in der Praxis float/int.
-    Im Tool bedeutet 0.0: Regel deaktiviert -> None.
+    Konvention:
+    - None oder nicht parsebar → None
+    - 0.0 → None (Regel gilt als deaktiviert)
+    - sonst → float(value)
+
+    Zweck:
+    Viele Constraints sind optional. Streamlit liefert aber oft Zahlen,
+    daher wird hier eine robuste Konvertierung zentral gelöst.
     """
     if value is None:
         return None

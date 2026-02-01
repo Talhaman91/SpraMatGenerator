@@ -1,13 +1,27 @@
+"""
+Validierung der Alpha-Constraints gegen die gemessenen Metriken.
+
+Dieses Modul setzt die im UI konfigurierten Grenzwerte in "Checks" um:
+- jeder Check hat Name, ok, Ist-Wert, Soll-Wert und optional Notiz
+- im Alpha-Modus kann zusätzlich ein "overall bestanden/nicht bestanden" abgeleitet werden
+
+Zweck:
+Trennung von Analyse (Metriken berechnen) und Validierung (Regeln prüfen).
+"""
+
 from src.sprachlern_tool.models import Params
 from src.sprachlern_tool.nlp.analysis import TenseCounts
 
 
 def validate_alpha_stanza(params: Params, metrics: dict) -> dict:
     """
-    Prüft Alpha-Constraints.
+    Prüft Alpha-Constraints anhand der Analysemetriken.
 
-    Im Alpha-Modus wird der Status „bestanden/nicht bestanden“ verwendet.
-    Im Ohne-Alpha-Modus werden nur aktive Constraints geprüft (0 = aus).
+    Rückgabe:
+        dict mit:
+        - "checks": Liste einzelner Check-Objekte (Name/ok/Ist/Soll/Notiz)
+        - optional "overall": aggregierter Status im Alpha-Preset-Modus
+
     """
     a = params.alpha
     checks = []

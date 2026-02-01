@@ -1,6 +1,13 @@
 """
 Zentrale Konfiguration und Konstanten.
 
+Dieses Modul bündelt:
+- Modell-Konfiguration (Gemini-Modellname)
+- UI-Listen (Textsorten, Tempus-Labels, Stufenwerte)
+- Bänder/Heuristiken für Zusatzparameter (MTUL/Zipf/LexVar/Konnektoren)
+- Presets für Alpha-Level (Alpha 3–6) und Default-Werte im "Ohne Alpha"-Modus
+
+Zweck: Single Source of Truth für Werte, die im UI, Prompting und Reporting konsistent sein müssen.
 """
 
 GEMINI_MODEL = "gemini-3-flash-preview"
@@ -51,7 +58,7 @@ CONNECTOR_BANDS = {
     "sehr hoch": "keine Einschränkung",
 }
 
-
+# Presets für Alpha-Level:
 ALPHA_PRESETS = {
     "Alpha 3": dict(
         max_sentences=5,
@@ -91,6 +98,7 @@ ALPHA_PRESETS = {
     ),
 }
 
+# Default-Werte für "Ohne Alpha". Sind änderbar:
 FREE_DEFAULTS = dict(
     max_sentences=8,
     max_words_per_sentence=18,

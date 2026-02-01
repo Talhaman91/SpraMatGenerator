@@ -1,3 +1,11 @@
+"""
+Session-State Management für Streamlit.
+
+- Default-Initialisierung (damit die App ohne KeyErrors startet)
+- Preset-Handling für Alpha 3–6
+- konsistente Konstruktion des Params-Objekts aus st.session_state
+"""
+
 import streamlit as st
 
 from src.sprachlern_tool.config import FREE_DEFAULTS, ALPHA_PRESETS, TENSES_ALL
@@ -7,8 +15,7 @@ from src.sprachlern_tool.utils import optional_float_or_none, clamp_level
 
 def ensure_defaults_exist() -> None:
     """
-    Legt Standardwerte im Streamlit Session State an.
-
+    Initialisiert notwendige Schlüssel im Streamlit Session-State.
     """
     st.session_state.setdefault("mode", "Alpha 4")
     st.session_state.setdefault("topic", "Alltag")
@@ -59,14 +66,23 @@ def apply_preset_if_alpha(mode: str) -> None:
 
 
 def on_mode_change() -> None:
+    """
+    Callback bei Änderung des Modus (Alpha-Level oder Ohne Alpha).
+    """
     apply_preset_if_alpha(st.session_state["mode"])
 
 
 def build_params_from_state() -> Params:
     """
-    Baut das interne Params-Objekt aus dem Session State.
+    Baut ein Params-Objekt aus dem aktuellen Streamlit Session-State.
 
-    Dieses Objekt wird in Prompt-Building, LLM-Call und Report verwendet.
+    Dabei werden:
+    - Strings/Listen direkt übernommen
+    - optionale numerische Values normalisiert (z.B. 0 → None)
+    - Level-Strings abgesichert (clamp_level)
+
+    Rückgabe:
+        Params (general + alpha + fine) als strukturierter Input für Prompting/NLP.
     """
     if st.session_state["mode"] == "Ohne Alpha":
         tw = int(st.session_state["target_words"])

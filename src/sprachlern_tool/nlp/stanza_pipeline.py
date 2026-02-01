@@ -1,3 +1,10 @@
+"""
+Stanza-Pipeline Initialisierung.
+
+Wird über Streamlit cache_resource gecached, damit das Modell nicht bei jedem Run neu lädt.
+Enthält eine klare Fehlermeldung inkl. Hinweis auf stanza.download("de").
+"""
+
 import streamlit as st
 import stanza
 
@@ -5,8 +12,16 @@ import stanza
 @st.cache_resource
 def get_stanza_nlp():
     """
-    Initialisiert die Stanza-Pipeline für Deutsch.
+    Erstellt eine Stanza-Pipeline für Deutsch.
 
+    Konfiguration:
+    - tokenize: Segmentierung
+    - pos: Part-of-Speech
+    - lemma: Lemmatisierung
+    - depparse: Dependency-Parsing (UD)
+
+    Zweck:
+    Die Analysemetriken im Tool basieren auf UD-Annotationen und Token/Satz-Infos.
     """
     try:
         return stanza.Pipeline(

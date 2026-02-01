@@ -1,3 +1,19 @@
+"""
+Linguistische Analyse (Stanza-basiert) zur Textbewertung.
+
+Dieses Modul berechnet Metriken, die für:
+- Alpha-Level Constraints (harte Regeln)
+- Zusatzparameter (weiche Ziele)
+- Reporting (Soll/Ist-Darstellung)
+
+wichtig sind.
+
+Design-Prinzipien:
+- Wort-/Satzanzahl für UI robust per Regex (soll dem sichtbaren Text entsprechen).
+- Linguistische Merkmale per Stanza/UD (POS, Lemma, DepRel, Features).
+- Viele Heuristiken sind bewusst pragmatisch, damit sie in einem PoC stabil laufen.
+"""
+
 from dataclasses import dataclass
 from typing import Optional
 import re
@@ -76,26 +92,54 @@ def _ufeats_get(word, key: str) -> Optional[str]:
 
 
 def _is_finite(word) -> bool:
+    """
+    Prüft, ob ein Token eine finite Verbform ist.
+
+    Kriterium:
+    - UD-Feature VerbForm=Fin
+    - UPOS in {VERB, AUX}
+    """
     return _ufeats_get(word, "VerbForm") == "Fin" and getattr(word, "upos", None) in ("VERB", "AUX")
 
 
 def _is_participle(word) -> bool:
+    """
+    Prüft, ob ein Token als Partizip markiert ist (VerbForm=Part).
+
+    Wird u.a. für Perfekt/Plusquamperfekt/Futur II Heuristiken genutzt.
+    """
     return _ufeats_get(word, "VerbForm") == "Part" and getattr(word, "upos", None) in ("VERB", "AUX")
 
 
 def _is_infinitive(word) -> bool:
+    """
+    Prüft, ob ein Token ein Infinitiv ist (VerbForm=Inf).
+
+    Wird u.a. für Futur I Heuristiken genutzt.
+    """
     return _ufeats_get(word, "VerbForm") == "Inf" and getattr(word, "upos", None) in ("VERB", "AUX")
 
 
 def _lemma(word) -> str:
+    """
+    Liefert das Lemma eines Tokens in Kleinschreibung.
+    """
     return (getattr(word, "lemma", "") or "").lower()
 
 
 def _dep_rel(word) -> str:
+    """
+    Liefert die UD-Dependency-Relation (deprel) als String.
+    """
     return (getattr(word, "deprel", "") or "")
 
 
 def _head_id(word) -> int:
+    """
+    Liefert die Head-ID (Governor) eines Tokens als int.
+
+    In UD referenziert head auf die ID des syntaktischen Kopfes im Satz.
+    """
     return int(getattr(word, "head", 0) or 0)
 
 
@@ -111,12 +155,13 @@ def _token_is_word(word) -> bool:
     tok = (getattr(word, "text", "") or "").strip()
     return bool(tok) and bool(re.search(r"[0-9A-Za-zÄÖÜäöüß]", tok))
 
-
 # Regex-basierte Wortzählung: stabiler für UI (inkl. Bindestrich-Wörter).
 _WORD_RE = re.compile(r"[0-9A-Za-zÄÖÜäöüß]+(?:-[0-9A-Za-zÄÖÜäöüß]+)*", re.UNICODE)
 
-
 def _count_words_regex(text: str) -> int:
+    """
+    Zählt Worttoken regex-basiert.
+    """
     return len(_WORD_RE.findall(text or ""))
 
 
@@ -308,6 +353,13 @@ def _detect_tenses_for_sentence(words) -> tuple[TenseCounts, int, int]:
 
 
 def _words_from_doc(doc) -> list[str]:
+    """
+    Extrahiert Worttoken aus einem Stanza-Doc als Liste von Oberflächenformen.
+
+    Filter:
+    - keine reinen Satzzeichen/Symbole
+    - Token muss alphanumerische Zeichen enthalten
+    """
     toks: list[str] = []
     for sent in doc.sentences:
         for w in sent.words:
@@ -319,6 +371,13 @@ def _words_from_doc(doc) -> list[str]:
 
 
 def _ttr(tokens: list[str]) -> float:
+    """
+    Type-Token-Ratio (TTR).
+
+    Berechnung:
+    - tokens werden lowercased
+    - unique types / token count
+    """
     if not tokens:
         return 0.0
     low = [t.lower() for t in tokens]
@@ -326,6 +385,13 @@ def _ttr(tokens: list[str]) -> float:
 
 
 def _mtld(tokens: list[str], ttr_threshold: float = 0.72) -> float:
+    """
+    Measure of Textual Lexical Diversity (MTLD).
+
+    Heuristik:
+    - sequenzielles Zählen von Faktoren, sobald TTR unter einen Threshold fällt
+    - Vorwärts- und Rückwärts-Pass, Mittelwertbildung
+    """
     low = [t.lower() for t in tokens if t.strip()]
     if len(low) < 10:
         return 0.0

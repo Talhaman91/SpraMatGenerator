@@ -1,3 +1,14 @@
+"""
+User-Prompt Builder.
+
+Dieses Modul formatiert die aktuelle Parameterkonfiguration in einen
+klaren, möglichst maschinenverständlichen User Prompt.
+
+Es enthält:
+- fine_params_to_prompt_lines: Zusatzparameter als weiche Ziele
+- build_user_prompt: Gesamter Prompt inkl. Thema/Texttyp/Constraints/Kontext
+"""
+
 from src.sprachlern_tool.config import MTUL_BANDS, ZIPF_BANDS, LEXVAR_BANDS, CONNECTOR_BANDS
 from src.sprachlern_tool.models import Params, FineParams
 from src.sprachlern_tool.prompBuilder.context import context_for_alpha
@@ -8,6 +19,9 @@ def fine_params_to_prompt_lines(f: FineParams) -> list[str]:
     Formatiert Zusatzparameter als „weiche Ziele“.
 
     Die Zusatzparameter sollen ein Alpha-Level nicht ersetzen, sondern innerhalb des Levels fein steuern.
+
+    Rückgabe:
+    Liste einzelner Zeilen, die in build_user_prompt eingebettet werden.
     """
     if not f.enabled:
         return []

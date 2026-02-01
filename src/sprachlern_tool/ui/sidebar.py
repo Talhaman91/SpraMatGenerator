@@ -1,3 +1,12 @@
+"""
+Streamlit Sidebar Rendering.
+
+Dieses Modul ist verantwortlich für:
+- LLM-Einstellungen (API-Key, Temperature)
+- Parametereingaben (Allgemein, Alpha, Zusatzparameter)
+- Trigger von State-Updates (z.B. Mode-Wechsel)
+"""
+
 import streamlit as st
 
 from src.sprachlern_tool.config import TEXT_TYPES, TENSES_ALL, LEVELS_4, SUBCLAUSE_TYPES, TENSE_WEIGHT_LEVELS
@@ -6,7 +15,10 @@ from src.sprachlern_tool.ui.state import on_mode_change
 
 def render_sidebar() -> tuple[str, float]:
     """
-    Rendert die Sidebar und liefert die LLM-Einstellungen zurück.
+    Rendert die Sidebar und gibt die LLM-Steuerparameter zurück.
+
+    Rückgabe:
+        (api_key, temperature)
     """
     with st.sidebar:
         st.header("LLM")

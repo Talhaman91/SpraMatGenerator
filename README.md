@@ -1,6 +1,8 @@
 # Sprachlernmaterial Generator
 Dieses webbasierte Proof-of-Concept ermöglicht eine parametrisierte Texterstellung mit Google Gemini zur Erstellung von Sprachlernmaterialien.
 
+**Hinweis:** Als Hilfsmittel wurde ChatGPT verwendet
+
 ## Installation
 Der folgende Befehl installiert die notwendigen Python-Pakete.
 
@@ -8,6 +10,10 @@ Der folgende Befehl installiert die notwendigen Python-Pakete.
 
 ```bash
 pip install -r requirements.txt
+#installiert die nötigen python Pakete
+
+python -m streamlit run app.py
+#führt das Programm im Browser all local:host aus
 ```
 ## Nutzung
 1. Trage den Google-Gemini-API-Key im oberen linken Bereich ein.
@@ -15,3 +21,5 @@ pip install -r requirements.txt
 3. Der generierte Prompt wird im mittleren Bereich angezeigt.
 4. Klicke auf **Generate**, um einen Text gemäß der gewählten Parameterkonfiguration zu erzeugen. Der Text erscheint im rechten Textfeld.
 5. Optional können externe Texte in das Textfeld eingefügt und über den Button **Analyze** analysiert werden.
+
+

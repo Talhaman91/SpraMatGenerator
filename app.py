@@ -1,3 +1,13 @@
+"""
+Sprachlernmaterial Generator.
+
+Dieses Modul verbindet:
+- UI (Sidebar + Layout),
+- Prompt-Erzeugung (System/User Prompt),
+- LLM-Aufruf (Gemini),
+- Validierung/Analyse (Stanza-basiert) und Report-Ausgabe.
+"""
+
 import streamlit as st
 
 from src.sprachlern_tool.prompBuilder.system_prompt import build_system_prompt
@@ -9,6 +19,9 @@ from src.sprachlern_tool.ui.sidebar import render_sidebar
 
 
 def main() -> None:
+    """
+       Startet die Streamlit-App und managed den Haupt-Workflow.
+    """
     st.set_page_config(page_title="Sprachlernmaterial Generator", layout="wide")
     st.title("Sprachlernmaterial Generator")
 

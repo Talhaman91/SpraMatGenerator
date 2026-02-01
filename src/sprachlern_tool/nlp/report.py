@@ -1,3 +1,16 @@
+"""
+Report-Erzeugung für die UI.
+
+Dieses Modul nimmt:
+- Parameterkonfiguration (Params)
+- Text (String)
+
+und erzeugt einen lesbaren Validierungsreport:
+- Allgemein (Wortanzahl etc.)
+- Alpha-Parameter: Soll/Ist + Status (falls Preset-Mode)
+- Zusatzparameter: Metriken + Interpretation über Band-Definitionen
+"""
+
 from src.sprachlern_tool.config import ALPHA_PRESETS, SUBCLAUSE_TYPES, MTUL_BANDS, ZIPF_BANDS, LEXVAR_BANDS, \
     CONNECTOR_BANDS, TENSES_ALL
 from src.sprachlern_tool.models import Params
@@ -13,6 +26,9 @@ def build_validation_report(params: Params, text: str) -> str:
     - Allgemein
     - Alpha-Parameter (Soll/Ist + optionaler Bestanden-Status im Alpha-Modus)
     - Zusatzparameter (Soll/Ist, unabhängig von der Aktivierung)
+
+    Rückgabe:
+    Multiline-String, der direkt in ein Streamlit text_area geschrieben wird.
     """
     m = analyze_text_stanza(text)
     a = params.alpha
